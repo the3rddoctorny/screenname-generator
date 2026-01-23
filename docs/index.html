@@ -514,8 +514,8 @@ async function loadWords() {
     (async function init() {
       setWordlistState("warn", "Loading word list…");
       await loadWords();
-      generate();
-    })();
+      setStatus(\"Ready. Choose options then click Generate.\");
+})();
   </script>
 </body>
 </html>
