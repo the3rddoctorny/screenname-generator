@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Screen Name Generator</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; max-width: 820px; margin-inline: auto; line-height: 1.35; }
+    h1 { font-size: 1.6rem; margin: 0 0 12px; }
+    .card { border: 1px solid rgba(127,127,127,.35); border-radius: 14px; padding: 16px; background: rgba(127,127,127,.06); }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .row > * { flex: 1 1 220px; }
+    label { display: block; font-size: .9rem; margin-bottom: 6px; }
+    input[type="text"], select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(127,127,127,.45); background: transparent; font-size: 1rem; }
+    .output { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 1.15rem; padding: 12px; }
+    .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(127,127,127,.45); background: rgba(127,127,127,.12); cursor: pointer; font-size: 1rem; }
+    button:focus { outline: 2px solid currentColor; outline-offset: 2px; }
+    .status { min-height: 1.2em; margin-top: 10px; font-size: .95rem; opacity: .9; }
+    .checks { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+    .checks label { display: inline-flex; gap: 8px; align-items: center; margin: 0; }
+  </style>
+</head>
+
+<body>
+  <h1>Screen Name Generator</h1>
+
+  <div class="card" role="region" aria-label="Screen name generator">
+    <div class="row">
+      <div>
+        <label for="screenName">Generated screen name</label>
+        <input id="screenName" class="output" type="text" readonly aria-readonly="true" />
+      </div>
+
+      <div>
+        <label for="separator">Separator</label>
+        <select id="separator">
+          <option value="none">None</option>
+          <option value="_">Underscore (_)</option>
+          <option value="-">Hyphen (-)</option>
+        </select>
+
+        <div class="checks" aria-label="Options">
+          <label><input id="lowercase" type="checkbox" /> lowercase</label>
+          <label><input id="digits" type="checkbox" /> add 2 digits</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button id="generateBtn" type="button">Generate</button>
+      <button id="copyBtn" type="button">Copy</button>
+    </div>
+
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    "use strict";
+
+    let WORDS_5 = [];
+
+    const el = (id) => document.getElementById(id);
+    const screenNameEl = el("screenName");
+    const separatorEl = el("separator");
+    const lowercaseEl = el("lowercase");
+    const digitsEl = el("digits");
+    const statusEl = el("status");
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+    function titleCase(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }
+
+    function randInt(maxExclusive) {
+      if (window.crypto && crypto.getRandomValues) {
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        return buf[0] % maxExclusive;
+      }
+      return Math.floor(Math.random() * maxExclusive);
+    }
+
+    function pickTwoDistinctWords(list) {
+      const i = randInt(list.length);
+      let j = randInt(list.length);
+      while (j === i) j = randInt(list.length);
+      return [list[i], list[j]];
+    }
+
+    function maybeDigits() {
+      if (!digitsEl.checked) return "";
+      const n = randInt(100);
+      return String(n).padStart(2, "0");
+    }
+
+    function buildScreenName() {
+      const [w1, w2] = pickTwoDistinctWords(WORDS_5);
+      const sep = separatorEl.value === "none" ? "" : separatorEl.value;
+
+      let name = `${titleCase(w1)}${sep}${titleCase(w2)}${maybeDigits()}`;
+      if (lowercaseEl.checked) name = name.toLowerCase();
+      return name;
+    }
+
+    function generate() {
+      if (WORDS_5.length < 2) {
+        setStatus("Word list not loaded yet.");
+        return;
+      }
+      screenNameEl.value = buildScreenName();
+      setStatus(`Generated. Loaded ${WORDS_5.length.toLocaleString()} words.`);
+    }
+
+    async function copyToClipboard() {
+      const value = screenNameEl.value.trim();
+      if (!value) { setStatus("Nothing to copy. Generate a name first."); return; }
+
+      try {
+        await navigator.clipboard.writeText(value);
+        setStatus("Copied to clipboard.");
+      } catch {
+        screenNameEl.focus();
+        screenNameEl.select();
+        setStatus("Clipboard blocked. Selected text instead.");
+      }
+    }
+
+    async function loadWords() {
+      try {
+        const res = await fetch("./words5.txt", { cache: "force-cache" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+
+        WORDS_5 = text
+          .split(/\r?\n/)
+          .map(w => w.trim())
+          .filter(w => /^[a-z]{5}$/.test(w));
+
+        if (WORDS_5.length < 2) throw new Error("Word list too small");
+        setStatus(`Loaded ${WORDS_5.length.toLocaleString()} words.`);
+      } catch (e) {
+        WORDS_5 = ["amber","atlas","basil","beach","blaze","bloom","bravo","cabin","candy","charm"];
+        setStatus(`Couldn't load words5.txt. Using fallback list. (${e.message || e})`);
+      }
+    }
+
+    el("generateBtn").addEventListener("click", generate);
+    el("copyBtn").addEventListener("click", copyToClipboard);
+
+    (async function init() {
+      await loadWords();
+      generate();
+    })();
+  </script>
+</body>
+</html>
+
