@@ -242,6 +242,22 @@
       box-shadow: 0 0 0 4px rgba(251,113,133,.15);
     }
 
+    .outputRow{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .outputRow .output{
+      flex: 1 1 280px;     /* grows, but not absurdly */
+      max-width: 420px;    /* cap it */
+    }
+
+    .outputRow button{
+      flex: 0 0 auto;
+    }
+
     footer{
       margin-top: 12px;
       color: var(--muted2);
@@ -267,11 +283,16 @@
       <div class="grid">
         <div class="field">
           <label for="screenName">Generated screen name</label>
-          <input id="screenName" class="output" type="text" readonly aria-readonly="true" />
-          <div class="pill" id="wordlistPill">
-            <span class="dot" id="wordlistDot"></span>
-            <span id="wordlistMsg">Loading word list…</span>
-          </div>
+            <div class="outputRow">
+              <input id="screenName" class="output" type="text" readonly aria-readonly="true" />
+              <button id="generateBtn" class="primary" type="button">Generate</button>
+              <button id="copyBtn" type="button">Copy</button>
+            </div>
+
+            <div class="pill" id="wordlistPill">
+              <span class="dot" id="wordlistDot"></span>
+              <span id="wordlistMsg">Loading word list…</span>
+            </div>
         </div>
 
         <div class="options">
