@@ -234,27 +234,63 @@
       box-shadow: 0 0 0 4px rgba(251,113,133,.15);
     }
 
-    .outputRow{
-      display:flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
+    .results{
+      list-style:none;
+      padding:0;
+      margin: 8px 0 0;
+      display:grid;
+      gap: 8px;
     }
 
-    .outputRow .output{
-      width: 100%;
-      max-width: 360px;
+    .results li{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
     }
+
+    @media (prefers-color-scheme: light) {
+      .results li{ background: rgba(17,24,39,.03); }
+    }
+
+    .name{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 1.02rem;
+      letter-spacing: .2px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .copyOne{
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.08);
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .copyOne:hover{ background: rgba(255,255,255,.12); }
 
     .btnRow{
       display:flex;
       gap: 10px;
       flex-wrap: wrap;
+      margin-top: 10px;
     }
 
-    @media (max-width: 520px){
-      .outputRow .output{ max-width: 100%; }
-      .optionsTop .field{ max-width: 100%; }
+    #count{
+      max-width: 120px;
+    }
+@media (max-width: 520px){      .optionsTop .field{ max-width: 100%; }
       .optionsTop select{ max-width: 100%; }
       .checks{ width: 100%; }
     }
@@ -283,7 +319,7 @@
     <div class="card" role="region" aria-label="Screen name generator">
       <div class="stack">
         <div class="optionsTop">
-<div class="field">
+          <div class="field">
             <label for="separator">Separator</label>
             <select id="separator">
               <option value="none">None</option>
@@ -291,26 +327,35 @@
               <option value="-">Hyphen (-)</option>
             </select>
           </div>
-<div class="checks" aria-label="Options">
+
+          <div class="field">
+            <label for="count">How many?</label>
+            <select id="count">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+
+          <div class="checks" aria-label="Options">
             <label><input id="lowercase" type="checkbox" /> lowercase</label>
             <label><input id="digits" type="checkbox" /> add 2 digits</label>
           </div>
         </div>
 
 <div class="field outputSection">
-          <label for="screenName">Generated screen name</label>
-            <div class="outputRow">
-              <input id="screenName" class="output" type="text" readonly aria-readonly="true" />
-              <div class="btnRow" aria-label="Actions">
-                <button id="generateBtn" class="primary" type="button">Generate</button>
-                <button id="copyBtn" type="button">Copy</button>
-              </div>
-            </div>
+          <label for="results">Generated screen names</label>
+          <ul id="results" class="results" aria-label="Generated screen names list"></ul>
 
-            <div class="pill" id="wordlistPill">
-              <span class="dot" id="wordlistDot"></span>
-              <span id="wordlistMsg">Loading word list…</span>
-            </div>
+          <div class="btnRow" aria-label="Actions">
+            <button id="generateBtn" class="primary" type="button">Generate</button>
+            <button id="copyBtn" type="button">Copy first</button>
+          </div>
+
+          <div class="pill" id="wordlistPill">
+            <span class="dot" id="wordlistDot"></span>
+            <span id="wordlistMsg">Loading word list…</span>
+          </div>
         </div>
       </div>
 
@@ -328,10 +373,11 @@
     let WORDS_5 = [];
 
     const el = (id) => document.getElementById(id);
-    const screenNameEl = el("screenName");
-    const separatorEl = el("separator");
+const separatorEl = el("separator");
     const lowercaseEl = el("lowercase");
     const digitsEl = el("digits");
+    const countEl = el("count");
+    const resultsEl = el("results");
     const statusEl = el("status");
 
     const wordlistMsgEl = el("wordlistMsg");
@@ -378,26 +424,70 @@
       return name;
     }
 
+    function renderResults(names) {
+      resultsEl.innerHTML = "";
+      for (const name of names) {
+        const li = document.createElement("li");
+
+        const span = document.createElement("span");
+        span.className = "name";
+        span.textContent = name;
+
+        const btn = document.createElement("button");
+        btn.className = "copyOne";
+        btn.type = "button";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", () => copyText(name));
+
+        li.appendChild(span);
+        li.appendChild(btn);
+        resultsEl.appendChild(li);
+      }
+    }
+
+    async function copyText(value) {
+      try {
+        await navigator.clipboard.writeText(value);
+        setStatus("Copied to clipboard.");
+      } catch {
+        setStatus("Clipboard blocked. Select + copy manually.");
+      }
+    }
+
     function generate() {
       if (WORDS_5.length < 2) {
         setStatus("Word list not loaded yet.");
         return;
       }
-      screenNameEl.value = buildScreenName();
-      setStatus("Generated.");
+
+      const n = Math.max(1, Math.min(50, parseInt(countEl.value, 10) || 5));
+      const names = [];
+      const seen = new Set();
+
+      while (names.length < n) {
+        const candidate = buildScreenName();
+        if (!seen.has(candidate)) {
+          seen.add(candidate);
+          names.push(candidate);
+        }
+        if (seen.size > n * 10) break;
+      }
+
+      renderResults(names);
+      setStatus(`Generated ${names.length} names.`);
     }
 
     async function copyToClipboard() {
-      const value = screenNameEl.value.trim();
-      if (!value) { setStatus("Nothing to copy. Generate a name first."); return; }
-
-      try {
+      const first = resultsEl.querySelector(".name");
+      if (!first) {
+        setStatus("Nothing to copy. Generate names first.");
+        return;
+      }
+      await copyText(first.textContent.trim());
+    }try {
         await navigator.clipboard.writeText(value);
         setStatus("Copied to clipboard.");
-      } catch {
-        screenNameEl.focus();
-        screenNameEl.select();
-        setStatus("Clipboard blocked. Selected text instead.");
+      } catch {setStatus("Clipboard blocked. Selected text instead.");
       }
     }
 
