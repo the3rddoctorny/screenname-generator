@@ -484,14 +484,9 @@ const separatorEl = el("separator");
         return;
       }
       await copyText(first.textContent.trim());
-    }try {
-        await navigator.clipboard.writeText(value);
-        setStatus("Copied to clipboard.");
-      } catch {setStatus("Clipboard blocked. Selected text instead.");
-      }
     }
 
-    async function loadWords() {
+async function loadWords() {
       try {
         const res = await fetch("./words5.txt", { cache: "force-cache" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
