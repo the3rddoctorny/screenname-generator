@@ -1,12 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%2314171f'/%3E%3Ctext%20x='32'%20y='44'%20text-anchor='middle'%20font-size='40'%20font-family='Arial,%20sans-serif'%20font-weight='700'%20fill='white'%3ES%3C/text%3E%3C/svg%3E">
-  <title>Screen Name Generator</title>
-
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314171f'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='40' font-family='Arial, sans-serif' font-weight='700' fill='white'%3ES%3C/text%3E%3C/svg%3E" rel="icon"/>
+<title>Screen Name Generator</title>
+<style>
     :root{
       --bg0:#0b1220;
       --bg1:#101a30;
@@ -307,68 +307,58 @@
     }
   </style>
 </head>
-
 <body>
-  <main class="wrap" id="main">
-    <header>
-      <div>
-        <h1>Screen Name Generator</h1>
-        <p class="subtitle">Two random 5-letter words smashed together. Instant online persona.</p>
-      </div>
-    </header>
-
-    <div class="card" role="region" aria-label="Screen name generator">
-      <div class="stack">
-        <div class="optionsTop">
-          <div class="field">
-            <label for="separator">Separator</label>
-            <select id="separator">
-              <option value="none">None</option>
-              <option value="_">Underscore (_)</option>
-              <option value="-">Hyphen (-)</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="count">How many?</label>
-            <select id="count">
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-            </select>
-          </div>
-
-          <div class="checks" aria-label="Options">
-            <label><input id="lowercase" type="checkbox"> lowercase</label>
-            <label><input id="digits" type="checkbox"> add 2 digits</label>
-          </div>
-        </div>
-
+<div class="wrap" id="main">
+<header>
+<div>
+<h1>Screen Name Generator</h1>
+<p class="subtitle">Two random 5-letter words smashed together. Instant online persona.</p>
+</div>
+</header>
+<div aria-label="Screen name generator" class="card" role="region">
+<div class="stack">
+<div class="optionsTop">
+<div class="field">
+<label for="separator">Separator</label>
+<select data-testid="sn-separator" id="separator">
+<option value="none">None</option>
+<option value="_">Underscore (_)</option>
+<option value="-">Hyphen (-)</option>
+</select>
+</div>
+<div class="field">
+<label for="count">How many?</label>
+<select data-testid="sn-count" id="count">
+<option value="5">5</option>
+<option value="10">10</option>
+<option value="20">20</option>
+</select>
+</div>
+<div aria-label="Options" class="checks">
+<label><input data-testid="sn-lowercase" id="lowercase" type="checkbox"/> lowercase</label>
+<label><input data-testid="sn-digits" id="digits" type="checkbox"/> add 2 digits</label>
+</div>
+</div>
 <div class="field outputSection">
-          <label for="results">Generated screen names</label>
-          <ul id="results" class="results" aria-label="Generated screen names list"></ul>
-
-          <div class="btnRow" aria-label="Actions">
-            <button id="generateBtn" class="primary" type="button">Generate</button>
-            <button id="copyBtn" type="button">Copy first</button>
-          </div>
-
-          <div class="pill" id="wordlistPill">
-            <span class="dot" id="wordlistDot"></span>
-            <span id="wordlistMsg">Loading word list…</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="status" id="status" role="status" aria-live="polite"></div>
-    </div>
-
-    <footer>
+<label for="results">Generated screen names</label>
+<ul aria-label="Generated screen names list" class="results" data-testid="sn-results" id="results"></ul>
+<div aria-label="Actions" class="btnRow">
+<button class="primary" data-testid="sn-generate" id="generateBtn" type="button">Generate</button>
+<button data-testid="sn-copy-first" id="copyBtn" type="button">Copy first</button>
+</div>
+<div class="pill" id="wordlistPill">
+<span class="dot" id="wordlistDot"></span>
+<span id="wordlistMsg">Loading word list…</span>
+</div>
+</div>
+</div>
+<div aria-live="polite" class="status" data-testid="sn-status" id="status" role="status"></div>
+</div>
+<footer>
       Tip: ensure <code>words5.txt</code> sits next to <code>index.html</code> on GitHub Pages or you’ll get the tiny fallback list.
     </footer>
-  </main>
-
-  <script>
+</div>
+<script>
     "use strict";
 
     let WORDS_5 = [];
